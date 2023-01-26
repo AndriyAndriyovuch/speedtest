@@ -2,6 +2,7 @@ import csv
 import time
 from datetime import datetime
 import speedtest
+import os
 
 def format_bytes(size):
     power = 2**10
@@ -12,9 +13,15 @@ def format_bytes(size):
         n += 1
     return f"{round(size, 2)} {power_labels[n]+'b'}"
 
-def test_speed():
-    current_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
+def check_directory():
+    path = current_time.strftime('%m_%Y')
+    if not os.path.exists(path):
+        os.mkdir(path) 
+
+
+
+def test_speed():
     servers = []
     test = speedtest.Speedtest()
     test.get_servers(servers)
@@ -26,28 +33,34 @@ def test_speed():
     res = test.results.dict()
 
     data = [
-        current_time,
+        current_time.strftime("%d/%m/%Y %H:%M:%S"),
         res['client']['isp'],
         format_bytes(res['download']),
         format_bytes(res['upload'])
     ]
 
-    with open(f"results_{datetime.now().strftime('%d_%m_%Y')}.csv", 'a') as file:
+    with open(f"{current_time.strftime('%m_%Y')}/results_{current_time.strftime('%d_%m_%Y')}.csv", 'a') as file:
         writer = csv.writer(file)
         writer.writerow(data)
 
 while True:
+    current_time = datetime.now()
+    check_directory()
+
     try:
+
+
         test_speed()
+
         time.sleep(180)
     except Exception:
         data = [
-            datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            current_time.strftime("%d/%m/%Y %H:%M:%S"),
             "No data",
             "No data",
             "No data"
         ]
-        with open(f"results_{datetime.now().strftime('%d_%m_%Y')}.csv", 'a') as file:
+        with open(f"{current_time.strftime('%m_%Y')}/results_{current_time.strftime('%d_%m_%Y')}.csv", 'a') as file:
             writer = csv.writer(file)
             writer.writerow(data)
 
